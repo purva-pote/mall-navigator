@@ -1,0 +1,19 @@
+# Environments & Secrets (CRITICAL SECURITY)
+.env
+*.env
+env/
+venv/
+ENV/
+
+# Python caching
+__pycache__/
+*.pyc
+
+# Node.js (Frontend) dependencies
+node_modules/
+.pnpm-store/
+dist/
+
+# Mac/Windows OS clutter
+.DS_Store
+Thumbs.db
