@@ -1,8 +1,25 @@
 from fastapi import FastAPI, HTTPException
 import heapq
+from fastapi.middleware.cors import CORSMiddleware
 
 # 1. Initialize the web server application
 app = FastAPI()
+
+# 2. Define the exact list of frontend addresses we trust
+# (In production, this would be your actual live website URL)
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+# 3. Apply the middleware plug-in to our application
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,          # Only allow our specific React app
+    allow_credentials=True,
+    allow_methods=["*"],            # Allows GET, POST, etc.
+    allow_headers=["*"],            # Allows all network metadata headers
+)
 
 # Our blueprint database graph from the image
 mall_graph = {
