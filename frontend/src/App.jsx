@@ -1,122 +1,118 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
+  // 1. Initialize our short-term memory (State)
+  const [start, setStart] = useState("");
+  const [destination, setDestination] = useState("");
+  const [route, setRoute] = useState([]);
+  const [distance, setDistance] = useState(null);
+  const [error, setError] = useState("");
 
+  // Our list of valid stores from the ground floor plan blueprint
+  const availableStores = [
+    "Nike",
+    "Adidas",
+    "AM_PM",
+    "Reebok",
+    "Limelight",
+    "Shaheen_Grocers",
+  ];
+
+  // 2. The Logic triggered when clicking "Find Shortest Route"
+  const handleNavigation = async (e) => {
+    e.preventDefault(); // Prevents the browser from reloading the page
+    setError(""); // Reset errors from previous searches
+    setRoute([]);
+    setDistance(null);
+
+    // Validation Check: Ensure they chose two different locations
+    if (!start || !destination) {
+      setError("Please select both a start location and a destination.");
+      return;
+    }
+    if (start === destination) {
+      setError("You are already standing at your destination!");
+      return;
+    }
+
+    try {
+      // Fetch data live from our local FastAPI backend server!
+      const response = await fetch(
+        `http://127.0.0.1:8000/navigate?start=${start}&destination=${destination}`
+      );
+      
+      const data = await response.json();
+
+      if (response.ok) {
+        // If the backend says 200 OK, save the path details into our memory slots
+        setRoute(data.shortest_path);
+        setDistance(data.distance);
+      } else {
+        setError(data.detail || "An unexpected error occurred.");
+      }
+    } catch (err) {
+      setError("Could not connect to the backend navigation server.");
+    }
+  };
+
+  // 3. The Visual Output (JSX Layout)
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div style={{ padding: "40px", fontFamily: "sans-serif", maxWidth: "600px", margin: "0 auto" }}>
+      <h2>📍 Mall Indoor Navigator</h2>
+      <p style={{ color: "#666" }}>Scan complete. Select your locations below to generate the optimal walking path.</p>
+
+      {/* Input Selection Card */}
+      <form onSubmit={handleNavigation} style={{ background: "#f5f5f5", padding: "20px", borderRadius: "8px", marginBottom: "20px" }}>
+        
+        {/* Dropdown 1: Starting Store */}
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Where are you standing?</label>
+          <select value={start} onChange={(e) => setStart(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "4px" }}>
+            <option value="">-- Choose Current Store --</option>
+            {availableStores.map((store) => (
+              <option key={store} value={store}>{store.replace("_", " ")}</option>
+            ))}
+          </select>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+
+        {/* Dropdown 2: Destination Store */}
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Where do you want to go?</label>
+          <select value={destination} onChange={(e) => setDestination(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "4px" }}>
+            <option value="">-- Choose Target Destination --</option>
+            {availableStores.map((store) => (
+              <option key={store} value={store}>{store.replace("_", " ")}</option>
+            ))}
+          </select>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+
+        <button type="submit" style={{ width: "100%", padding: "12px", background: "#0070f3", color: "white", border: "none", borderRadius: "4px", fontSize: "16px", cursor: "pointer" }}>
+          Find Shortest Route
         </button>
-      </section>
+      </form>
 
-      <div className="ticks"></div>
+      {/* Error Displays */}
+      {error && <div style={{ color: "red", padding: "10px", background: "#ffebee", borderRadius: "4px", marginBottom: "20px" }}>⚠️ {error}</div>}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* Navigation Results Card */}
+      {route.length > 0 && (
+        <div style={{ border: "2px solid #0070f3", padding: "20px", borderRadius: "8px", background: "#f0f7ff" }}>
+          <h3 style={{ marginTop: 0, color: "#0070f3" }}>🗺️ Generated Route</h3>
+          <p><strong>Total Distance:</strong> {distance} steps/meters</p>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", marginTop: "15px" }}>
+            {route.map((step, index) => (
+              <span key={step} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ padding: "8px 12px", background: "white", borderRadius: "4px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)", fontWeight: "bold" }}>
+                  {step.replace("_", " ")}
+                </span>
+                {index < route.length - 1 && <span style={{ color: "#0070f3", fontWeight: "bold" }}>➔</span>}
+              </span>
+            ))}
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
