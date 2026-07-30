@@ -88,22 +88,31 @@ function App() {
 
   return (
     <div style={{ background: colors.bgLight, minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
-      <div style={{ width: "100%", maxWidth: "480px", minHeight: "100vh", background: colors.cardLight, display: "flex", flexDirection: "column", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.05)" }}>
+      <div style={{ width: "100%", 
+        maxWidth: "440px", // Reduced from 480px for tighter fit
+        minHeight: "100vh", 
+        background: colors.cardLight, 
+        display: "flex", 
+        flexDirection: "column", 
+        boxShadow: "0 20px 25px -5px rgba(0,0,0,0.05)",
+        padding: "16px 16px 0 16px" }}>
         
         {/* Header */}
-        <div style={{ padding: "32px 24px 20px 24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h1 style={{ fontSize: "28px", fontWeight: "800", color: colors.textDark, margin: 0, letterSpacing: "-0.5px" }}>
+        {/* Increased bottom margin from 12px to 20px */}
+        <div style={{ marginBottom: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <h1 style={{ fontSize: "26px", fontWeight: "800", color: colors.textDark, margin: 0, letterSpacing: "-0.5px" }}>
               Mall Wayfinder
             </h1>
             <span style={{ background: colors.periwinkleSoft, color: colors.periwinkleText, padding: "6px 12px", borderRadius: "12px", fontSize: "12px", fontWeight: "700" }}>
-              Multi-Floor v2.0
+              v2.0
             </span>
           </div>
-
-          <p style={{ fontSize: "14px", color: colors.textMuted, margin: "0 0 24px 0" }}>
+          {/* Increased font from 12px to 14px */}
+          <p style={{ fontSize: "14px", color: colors.textMuted, margin: 0 }}>
             Multi-level intelligent pathfinding core.
           </p>
+        </div>
 
           <MallMap 
             start={start} 
@@ -119,14 +128,15 @@ function App() {
                 type="button"
                 onClick={() => setStartCategory(cat)}
                 style={{
-                  padding: "4px 10px",
-                  borderRadius: "8px",
+                  padding: "6px 14px", // Increased padding from 4px 10px
+                  borderRadius: "10px",
                   border: "none",
-                  fontSize: "11px",
+                  fontSize: "12px", // Increased font from 11px
                   fontWeight: "600",
                   cursor: "pointer",
                   background: startCategory === cat ? "#6366f1" : "#e2e8f0",
-                  color: startCategory === cat ? "#ffffff" : "#475569"
+                  color: startCategory === cat ? "#ffffff" : "#475569",
+                  transition: "all 0.2s"
                 }}
               >
                 {cat}
@@ -135,15 +145,15 @@ function App() {
           </div>
 
           <form onSubmit={handleNavigation}>
-            {/* Start Location Dropdown */}
-            <div style={{ background: colors.bgLight, border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 16px", marginBottom: "12px" }}>
-              <span style={{ fontSize: "11px", fontWeight: "700", color: colors.periwinkleText, letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>
+            {/* Increased padding to 14px 16px */}
+            <div style={{ background: colors.bgLight, border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 16px", marginBottom: "16px" }}>
+              <span style={{ fontSize: "12px", fontWeight: "700", color: colors.periwinkleText, letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>
                 START LOCATION
               </span>
               <select 
                 value={start} 
                 onChange={(e) => setStart(e.target.value)}
-                style={{ width: "100%", border: "none", background: "transparent", fontSize: "15px", fontWeight: "600", color: colors.textDark, outline: "none" }}
+                style={{ width: "100%", border: "none", background: "transparent", fontSize: "16px", fontWeight: "600", color: colors.textDark, outline: "none" }}
               >
                 <option value="">Select current store...</option>
                 {filteredStartStores.map(item => (
@@ -158,19 +168,20 @@ function App() {
             <div style={{ display: "flex", gap: "6px", marginBottom: "8px", overflowX: "auto" }}>
               {["All", "Apparel", "Food", "Groceries"].map((cat) => (
                 <button
-                  key={`dest-${cat}`}
-                  type="button"
-                  onClick={() => setDestCategory(cat)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: "8px",
-                    border: "none",
-                    fontSize: "11px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    background: destCategory === cat ? "#6366f1" : "#e2e8f0",
-                    color: destCategory === cat ? "#ffffff" : "#475569"
-                  }}
+                key={`dest-${cat}`}
+                type="button"
+                onClick={() => setDestCategory(cat)}
+                style={{
+                  padding: "6px 14px", // Increased padding from 4px 10px
+                  borderRadius: "10px",
+                  border: "none",
+                  fontSize: "12px", // Increased font from 11px
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  background: destCategory === cat ? "#6366f1" : "#e2e8f0",
+                  color: destCategory === cat ? "#ffffff" : "#475569",
+                  transition: "all 0.2s"
+                }}
                 >
                   {cat}
                 </button>
@@ -178,14 +189,15 @@ function App() {
             </div>
 
             {/* Destination Dropdown */}
-            <div style={{ background: colors.bgLight, border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 16px", marginBottom: "20px" }}>
-              <span style={{ fontSize: "11px", fontWeight: "700", color: colors.textMuted, letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>
-                TARGET DESTINATION
+            {/* Increased padding to 14px 16px */}
+            <div style={{ background: colors.bgLight, border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 16px", marginBottom: "16px" }}>
+              <span style={{ fontSize: "12px", fontWeight: "700", color: colors.periwinkleText, letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>
+                DESTINATION
               </span>
               <select 
                 value={destination} 
                 onChange={(e) => setDestination(e.target.value)}
-                style={{ width: "100%", border: "none", background: "transparent", fontSize: "15px", fontWeight: "600", color: colors.textDark, outline: "none" }}
+                style={{ width: "100%", border: "none", background: "transparent", fontSize: "16px", fontWeight: "600", color: colors.textDark, outline: "none" }}
               >
                 <option value="">Select target store...</option>
                 {filteredDestStores.map(item => (
@@ -199,12 +211,25 @@ function App() {
             <button 
               type="submit" 
               disabled={loading}
-              style={{ width: "100%", padding: "16px", background: colors.periwinkleSolid, color: "#ffffff", border: "none", borderRadius: "20px", fontSize: "15px", fontWeight: "700", cursor: "pointer", boxShadow: "0 10px 15px -3px rgba(99, 102, 241, 0.3)" }}
+              style={{ 
+                width: "100%", 
+                padding: "16px", 
+                marginTop: "8px", // Added top margin for separation
+                marginBottom: "16px", // Added bottom margin for separation
+                background: colors.periwinkleSolid, 
+                color: "#ffffff", 
+                border: "none", 
+                borderRadius: "20px", 
+                fontSize: "16px", // Increased font from 15px
+                fontWeight: "700", 
+                cursor: "pointer", 
+                boxShadow: "0 10px 15px -3px rgba(99, 102, 241, 0.3)" 
+              }}
             >
               {loading ? "Computing Multi-Floor Route..." : "Find Shortest Path ➔"}
             </button>
           </form>
-        </div>
+        
 
         {error && (
           <div style={{ margin: "0 24px 20px 24px", background: "#fef2f2", border: "1px solid #fee2e2", color: "#991b1b", padding: "12px 16px", borderRadius: "12px", fontSize: "13px" }}>
