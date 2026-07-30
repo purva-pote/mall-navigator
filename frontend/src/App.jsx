@@ -1,15 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import MallMap from "./MallMap";
 
 function App() {
   const [start, setStart] = useState("");
   const [destination, setDestination] = useState("");
+  const [stores, setStores] = useState([]); // Dynamic store list from API
   const [route, setRoute] = useState([]);
   const [distance, setDistance] = useState(null);
   const [directions, setDirections] = useState([]);
+  const [tripMetadata, setTripMetadata] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const availableStores = ["Nike", "Adidas", "AM_PM", "Reebok", "Limelight", "Shaheen_Grocers"];
+  // Load available stores on component mount
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/stores")
+      .then((res) => res.json())
+      .then((data) => setStores(data))
+      .catch(() => setError("Failed to load store directory from server."));
+  }, []);
+
+  // Filter stores based on selected category pill
+  const filteredStores = selectedCategory === "All" 
+    ? stores 
+    : stores.filter(store => store.category === selectedCategory);
 
   const handleNavigation = async (e) => {
     e.preventDefault();
@@ -17,12 +32,12 @@ function App() {
     setLoading(true);
     
     if (!start || !destination) {
-      setError("Please select both your location and destination.");
+      setError("Please select both a start location and a destination.");
       setLoading(false);
       return;
     }
     if (start === destination) {
-      setError("You are already standing at your chosen destination.");
+      setError("You are already at your destination!");
       setLoading(false);
       return;
     }
@@ -37,8 +52,13 @@ function App() {
         setRoute(data.shortest_path);
         setDistance(data.distance);
         setDirections(data.directions || []);
+        setTripMetadata({
+          startFloor: data.start_floor,
+          destFloor: data.destination_floor,
+          floorChange: data.requires_floor_change
+        });
       } else {
-        setError(data.detail || "Failed to calculate path.");
+        setError(data.detail || "Failed to calculate navigation route.");
       }
     } catch (err) {
       setError("Unable to connect to the backend navigation server.");
@@ -49,142 +69,176 @@ function App() {
 
   const formatName = (name) => name.replace("_", " ");
 
-  // Periwinkle Color Palette Tokens based on image_47421a.jpg setup
   const colors = {
-    bgLight: "#f9fafb",
+    bgLight: "#f8fafc",
     cardLight: "#ffffff",
-    textDark: "#0c0a09",
-    textMuted: "#78716c",
-    periwinkleSolid: "#6366f1",     // Clean structural periwinkle indigo
-    periwinkleSoft: "#e0e7ff",      // Soft tint to replace the soft pink elements
+    textDark: "#0f172a",
+    textMuted: "#64748b",
+    periwinkleSolid: "#6366f1",
+    periwinkleSoft: "#e0e7ff",
     periwinkleText: "#4338ca",
-    bottomSheetBg: "#11111c",       // Deep dark slate/navy for the bottom section
-    darkCardBg: "#1e1e2f"
+    bottomSheetBg: "#0f172a"
   };
 
   return (
     <div style={{ background: colors.bgLight, minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
-      
-      {/* Mobile-Responsive Viewport Wrapper Container */}
-      <div style={{ width: "100%", maxWidth: "480px", minHeight: "100vh", background: colors.cardLight, display: "flex", flexDirection: "column", justifyContent: "between", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.08)", position: "relative", overflowX: "hidden" }}>
+      <div style={{ width: "100%", maxWidth: "480px", minHeight: "100vh", background: colors.cardLight, display: "flex", flexDirection: "column", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.05)" }}>
         
-        {/* Top Header Section - Inspired by Center Panel of image_47421a.jpg */}
+        {/* Header */}
         <div style={{ padding: "32px 24px 20px 24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
-            <div>
-              <h1 style={{ fontSize: "32px", fontWeight: "800", color: colors.textDark, margin: 0, lineHeight: "1.1", letterSpacing: "-1px" }}>
-                Hello,<br />Explorer
-              </h1>
-            </div>
-            {/* Status Compass Badge */}
-            <div style={{ background: colors.textDark, color: "white", width: "42px", height: "42px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>
-              🧭
-            </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <h1 style={{ fontSize: "28px", fontWeight: "800", color: colors.textDark, margin: 0, letterSpacing: "-0.5px" }}>
+              Mall Wayfinder
+            </h1>
+            <span style={{ background: colors.periwinkleSoft, color: colors.periwinkleText, padding: "6px 12px", borderRadius: "12px", fontSize: "12px", fontWeight: "700" }}>
+              Multi-Floor v2.0
+            </span>
           </div>
-          
-          <p style={{ fontSize: "14px", color: colors.textMuted, margin: "0 0 28px 0", fontWeight: "500" }}>
-            Where would you like to navigate today? Select your nodes below.
+
+          <p style={{ fontSize: "14px", color: colors.textMuted, margin: "0 0 24px 0" }}>
+            Multi-level intelligent pathfinding core.
           </p>
 
-          {/* Core Configuration Control Panel Form */}
+          <MallMap 
+            start={start} 
+            destination={destination} 
+            route={route} 
+          />
+
+          {/* CATEGORY FILTER PILLS */}
+          <div style={{ marginBottom: "20px" }}>
+            <span style={{ fontSize: "11px", fontWeight: "700", color: "#64748b", letterSpacing: "0.5px", display: "block", marginBottom: "8px" }}>
+              FILTER BY CATEGORY
+            </span>
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", pb: "4px" }}>
+              {["All", "Apparel", "Food", "Groceries"].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "12px",
+                    border: "none",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    background: selectedCategory === cat ? "#6366f1" : "#f1f5f9",
+                    color: selectedCategory === cat ? "#ffffff" : "#475569",
+                    transition: "all 0.2s"
+                  }}
+                >
+                  {cat === "All" && "✨ "}
+                  {cat === "Apparel" && "👟 "}
+                  {cat === "Food" && "🍔 "}
+                  {cat === "Groceries" && "🛒 "}
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <form onSubmit={handleNavigation}>
-            
-            {/* Dropdown 1: Starting Store Card */}
-            <div style={{ background: colors.bgLight, border: "1px solid #f3f4f6", borderRadius: "20px", padding: "16px", marginBottom: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
-              <span style={{ fontSize: "11px", fontWeight: "700", color: colors.periwinkleText, letterSpacing: "0.5px" }}>
-                STARTING STORE
+            {/* Start Location Dropdown */}
+            <div style={{ background: colors.bgLight, border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 16px", marginBottom: "12px" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: colors.periwinkleText, letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>
+                START LOCATION
               </span>
               <select 
                 value={start} 
                 onChange={(e) => setStart(e.target.value)}
-                style={{ width: "100%", border: "none", background: "transparent", fontSize: "16px", fontWeight: "600", color: colors.textDark, outline: "none", cursor: "pointer", padding: "4px 0" }}
+                style={{ width: "100%", border: "none", background: "transparent", fontSize: "15px", fontWeight: "600", color: colors.textDark, outline: "none" }}
               >
-                <option value="">Choose your starting point...</option>
-                {availableStores.map(store => <option key={store} value={store}>{formatName(store)}</option>)}
+                <option value="">Select current store...</option>
+                {/* Change stores.map to filteredStores.map in BOTH select boxes */}
+                {filteredStores.map(item => (
+                  <option key={item.name} value={item.name}>
+                    {formatName(item.name)} ({item.floor})
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* Dropdown 2: Target Destination Card */}
-            <div style={{ background: colors.bgLight, border: "1px solid #f3f4f6", borderRadius: "20px", padding: "16px", marginBottom: "24px", display: "flex", flexDirection: "column", gap: "4px" }}>
-              <span style={{ fontSize: "11px", fontWeight: "700", color: colors.textMuted, letterSpacing: "0.5px" }}>
+            {/* Destination Dropdown */}
+            <div style={{ background: colors.bgLight, border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 16px", marginBottom: "20px" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: colors.textMuted, letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>
                 TARGET DESTINATION
               </span>
               <select 
                 value={destination} 
                 onChange={(e) => setDestination(e.target.value)}
-                style={{ width: "100%", border: "none", background: "transparent", fontSize: "16px", fontWeight: "600", color: colors.textDark, outline: "none", cursor: "pointer", padding: "4px 0" }}
+                style={{ width: "100%", border: "none", background: "transparent", fontSize: "15px", fontWeight: "600", color: colors.textDark, outline: "none" }}
               >
-                <option value="">Where is your destination?</option>
-                {availableStores.map(store => <option key={store} value={store}>{formatName(store)}</option>)}
+                <option value="">Select target store...</option>
+                {filteredStores.map(item => (
+                  <option key={item.name} value={item.name}>
+                    {formatName(item.name)} ({item.floor})
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* Dynamic Interactive Action Button */}
             <button 
               type="submit" 
               disabled={loading}
-              style={{ width: "100%", padding: "16px", background: colors.periwinkleSolid, color: "#ffffff", border: "none", borderRadius: "24px", fontSize: "16px", fontWeight: "700", cursor: "pointer", boxShadow: `0 10px 20px -4px rgba(99,102,241,0.3)`, display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", transition: "transform 0.1s" }}
+              style={{ width: "100%", padding: "16px", background: colors.periwinkleSolid, color: "#ffffff", border: "none", borderRadius: "20px", fontSize: "15px", fontWeight: "700", cursor: "pointer", boxShadow: "0 10px 15px -3px rgba(99, 102, 241, 0.3)" }}
             >
-              {loading ? "Computing Dijkstra Matrix..." : "Generate Route Guide"}
-              <span style={{ background: "rgba(255,255,255,0.2)", width: "24px", height: "24px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px" }}>➔</span>
+              {loading ? "Computing Multi-Floor Route..." : "Find Shortest Path ➔"}
             </button>
           </form>
         </div>
 
-        {/* Floating Error Alert Toast */}
         {error && (
-          <div style={{ margin: "0 24px 24px 24px", background: "#fef2f2", border: "1px solid #fee2e2", color: "#991b1b", padding: "14px 18px", borderRadius: "16px", fontSize: "14px", fontWeight: "500", display: "flex", alignItems: "center", gap: "8px" }}>
-            <span>⚠️</span> {error}
+          <div style={{ margin: "0 24px 20px 24px", background: "#fef2f2", border: "1px solid #fee2e2", color: "#991b1b", padding: "12px 16px", borderRadius: "12px", fontSize: "13px" }}>
+            ⚠️ {error}
           </div>
         )}
 
-        {/* Dynamic Space Filler to push bottom sheet flush if no results are shown */}
         <div style={{ flexGrow: 1 }} />
 
-        {/* Enriched Dark Bottom Sheet Layer - Mimicking "Practices" Container from image_47421a.jpg */}
+        {/* Results Card */}
         {directions.length > 0 && (
-          <div style={{ background: colors.bottomSheetBg, borderRadius: "32px 32px 0 0", padding: "32px 24px", color: "#ffffff", boxShadow: "0 -20px 25px -5px rgba(0,0,0,0.1)" }}>
+          <div style={{ background: colors.bottomSheetBg, borderRadius: "28px 28px 0 0", padding: "28px 24px", color: "#ffffff" }}>
             
-            {/* Header Module for Bottom Sheet */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-              <h2 style={{ fontSize: "20px", fontWeight: "700", margin: 0, letterSpacing: "-0.5px" }}>Guidance Path</h2>
-              <span style={{ background: "rgba(255,255,255,0.08)", color: colors.periwinkleSoft, fontSize: "12px", fontWeight: "600", padding: "6px 14px", borderRadius: "20px" }}>
-                ⚡ {distance}m total
+            {/* Floor Transition Alert Banner */}
+            {tripMetadata?.floorChange && (
+              <div style={{ background: "rgba(99, 102, 241, 0.2)", border: "1px solid rgba(99, 102, 241, 0.4)", borderRadius: "14px", padding: "10px 14px", marginBottom: "20px", fontSize: "13px", color: colors.periwinkleSoft, display: "flex", alignItems: "center", gap: "8px" }}>
+                <span>🛗</span> <strong>Floor Transition Required:</strong> {tripMetadata.startFloor} ➔ {tripMetadata.destFloor}
+              </div>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ fontSize: "18px", fontWeight: "700", margin: 0 }}>Trip Guide</h2>
+              <span style={{ background: "rgba(255,255,255,0.1)", color: "#38bdf8", fontSize: "12px", fontWeight: "600", padding: "4px 12px", borderRadius: "12px" }}>
+                {distance} meters walking
               </span>
             </div>
 
-            {/* Turn-by-Turn Instruction Timeline */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {/* Steps Timeline */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {directions.map((step, index) => (
-                <div 
-                  key={index} 
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", padding: "16px", borderRadius: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px" }}
-                >
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
-                    {/* Direction Text */}
-                    <p style={{ margin: 0, fontSize: "14.5px", fontWeight: "500", lineHeight: "1.4", color: "#f3f4f6" }}>
+                <div key={index} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px 16px", borderRadius: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: "0 0 4px 0", fontSize: "14px", color: "#f1f5f9", lineHeight: "1.4" }}>
                       {step}.
                     </p>
-                    {/* Node Segment Trace Badge */}
-                    <span style={{ fontSize: "11px", color: colors.textMuted, fontWeight: "600", letterSpacing: "0.2px" }}>
+                    <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: "600" }}>
                       {formatName(route[index])} ➔ {formatName(route[index + 1])}
                     </span>
                   </div>
 
-                  {/* Periwinkle Step Action Token Marker */}
-                  <div style={{ background: colors.periwinkleSoft, color: colors.periwinkleText, width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "13px", flexShrink: 0 }}>
+                  <div style={{ background: colors.periwinkleSoft, color: colors.periwinkleText, width: "28px", height: "28px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "12px", flexShrink: 0 }}>
                     {index + 1}
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Arrival Decorative Anchor Banner */}
-            <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px dashed rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: "12px", color: "#4ade80", fontWeight: "600", fontSize: "14px" }}>
-              <div style={{ background: "rgba(74,222,128,0.1)", width: "28px", height: "28px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>🎉</div>
-              Arrived securely at {formatName(destination)}!
+            <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px dashed rgba(255,255,255,0.15)", color: "#4ade80", fontWeight: "600", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>🎉</span> Arrived at {formatName(destination)}!
             </div>
-            
+
           </div>
         )}
 
