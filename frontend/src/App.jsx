@@ -11,6 +11,7 @@ function App() {
   const [tripMetadata, setTripMetadata] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [algorithm, setAlgorithm] = useState("astar");
   const [startCategory, setStartCategory] = useState("All");
   const [destCategory, setDestCategory] = useState("All");
 
@@ -61,7 +62,9 @@ function App() {
         setTripMetadata({
           startFloor: data.start_floor,
           destFloor: data.destination_floor,
-          floorChange: data.requires_floor_change
+          floorChange: data.requires_floor_change,
+          executionTime: data.execution_time_ms,
+          nodesExplored: data.nodes_explored
         });
       } else {
         setError(data.detail || "Failed to calculate navigation route.");
@@ -71,6 +74,7 @@ function App() {
     } finally {
       setLoading(false);
     }
+    
   };
 
   const formatName = (name) => name.replace("_", " ");
@@ -210,6 +214,7 @@ function App() {
               </select>
             </div>
 
+
             <button 
               type="submit" 
               disabled={loading}
@@ -254,9 +259,14 @@ function App() {
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h2 style={{ fontSize: "18px", fontWeight: "700", margin: 0 }}>Trip Guide</h2>
-              <span style={{ background: "rgba(255,255,255,0.1)", color: "#38bdf8", fontSize: "12px", fontWeight: "600", padding: "4px 12px", borderRadius: "12px" }}>
-                {distance} meters walking
-              </span>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <span style={{ background: "rgba(255,255,255,0.1)", color: "#38bdf8", fontSize: "11px", fontWeight: "600", padding: "4px 10px", borderRadius: "10px" }}>
+                  {distance}m
+                </span>
+                <span style={{ background: "rgba(99, 102, 241, 0.3)", color: "#a5b4fc", fontSize: "11px", fontWeight: "600", padding: "4px 10px", borderRadius: "10px" }}>
+                  ⚡ {tripMetadata?.executionTime}ms
+                </span>
+              </div>
             </div>
 
             {/* Steps Timeline */}

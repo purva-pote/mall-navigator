@@ -17,8 +17,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Store Floor Registry
-# 1. Store Registry with Categories and Floors
+store_coordinates = {
+    "Nike": (70, 80),
+    "Adidas": (200, 80),
+    "AM_PM": (330, 80),
+    "Shaheen_Grocers": (70, 170),
+    "Elevator_GF": (260, 170),
+    "Elevator_1F": (260, 80),
+    "Reebok": (100, 170),
+    "Limelight": (200, 170),
+    "Zara": (300, 170),
+}
+
 store_registry = {
     "Nike": {"floor": "Ground Floor", "category": "Apparel"},
     "Adidas": {"floor": "Ground Floor", "category": "Apparel"},
@@ -76,37 +86,56 @@ mall_graph = {
     }
 }
 
-def find_shortest_path(graph, start, destination):
-    distances = {store: float('inf') for store in graph}
-    distances[start] = 0
-    previous_stores = {store: None for store in graph}
-    priority_queue = [(0, start)]
+import math
+import time
+
+def euclidean_heuristic(node, destination):
+    """Calculates straight-line Euclidean distance between two nodes."""
+    x1, y1 = store_coordinates[node]
+    x2, y2 = store_coordinates[destination]
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+def find_a_star_path(graph, start, destination):
+    """A* Pathfinding Algorithm with node exploration counter."""
+    start_time = time.perf_counter()
     
+    # Priority queue stores tuples of (f_score, current_node)
+    priority_queue = [(0 + euclidean_heuristic(start, destination), start)]
+    
+    # g_score: actual cost from start to current node
+    g_scores = {store: float('inf') for store in graph}
+    g_scores[start] = 0
+    
+    previous_stores = {store: None for store in graph}
+    nodes_explored = 0
+
     while priority_queue:
-        current_distance, current_store = heapq.heappop(priority_queue)
-        
+        _, current_store = heapq.heappop(priority_queue)
+        nodes_explored += 1
+
         if current_store == destination:
             break
-        if current_distance > distances[current_store]:
-            continue
-            
+
         for neighbor, edge_data in graph[current_store].items():
-            weight = edge_data['weight']
-            distance = current_distance + weight
-            
-            if distance < distances[neighbor]:
-                distances[neighbor] = distance
+            tentative_g_score = g_scores[current_store] + edge_data['weight']
+
+            if tentative_g_score < g_scores[neighbor]:
                 previous_stores[neighbor] = current_store
-                heapq.heappush(priority_queue, (distance, neighbor))
-                
+                g_scores[neighbor] = tentative_g_score
+                f_score = tentative_g_score + euclidean_heuristic(neighbor, destination)
+                heapq.heappush(priority_queue, (f_score, neighbor))
+
+    # Reconstruct path
     path = []
     current = destination
     while current is not None:
         path.append(current)
         current = previous_stores[current]
     path.reverse()
-    
-    return path, distances[destination]
+
+    execution_time_ms = round((time.perf_counter() - start_time) * 1000, 4)
+
+    return path, g_scores[destination], nodes_explored, execution_time_ms
 
 @app.get("/stores")
 def get_stores():
@@ -126,7 +155,8 @@ def get_route(start: str, destination: str):
     if start not in mall_graph or destination not in mall_graph:
         raise HTTPException(status_code=400, detail="Store location not found in mall database.")
         
-    route, total_distance = find_shortest_path(mall_graph, start, destination)
+    # Run A* Pathfinding Engine
+    route, total_distance, nodes_explored, exec_time = find_a_star_path(mall_graph, start, destination)
     
     human_directions = []
     for i in range(len(route) - 1):
@@ -134,13 +164,14 @@ def get_route(start: str, destination: str):
         next_node = route[i+1]
         human_directions.append(mall_graph[curr_node][next_node]['instruction'])
         
-    # Detect if path requires a floor transition
     start_floor = store_registry[start]["floor"]
     dest_floor = store_registry[destination]["floor"]
     requires_floor_change = start_floor != dest_floor
     
     return {
         "status": "success",
+        "execution_time_ms": exec_time,
+        "nodes_explored": nodes_explored,
         "start_floor": start_floor,
         "destination_floor": dest_floor,
         "requires_floor_change": requires_floor_change,
