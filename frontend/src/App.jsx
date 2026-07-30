@@ -243,7 +243,7 @@ function App() {
 
         {/* Results Card */}
         {directions.length > 0 && (
-          <div style={{ background: colors.bottomSheetBg, borderRadius: "28px 28px 28px 28px", padding: "28px 24px", color: "#ffffff" }}>
+          <div style={{ background: colors.bottomSheetBg, borderRadius: "24px", padding: "24px 24px", color: "#ffffff" }}>
             
             {/* Floor Transition Alert Banner */}
             {tripMetadata?.floorChange && (
