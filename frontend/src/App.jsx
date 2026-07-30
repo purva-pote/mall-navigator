@@ -11,7 +11,8 @@ function App() {
   const [tripMetadata, setTripMetadata] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [startCategory, setStartCategory] = useState("All");
+  const [destCategory, setDestCategory] = useState("All");
 
   // Load available stores on component mount
   useEffect(() => {
@@ -21,10 +22,15 @@ function App() {
       .catch(() => setError("Failed to load store directory from server."));
   }, []);
 
-  // Filter stores based on selected category pill
-  const filteredStores = selectedCategory === "All" 
+  // Filter start dropdown list independently
+  const filteredStartStores = startCategory === "All" 
     ? stores 
-    : stores.filter(store => store.category === selectedCategory);
+    : stores.filter(store => store.category === startCategory);
+
+  // Filter destination dropdown list independently
+  const filteredDestStores = destCategory === "All" 
+    ? stores 
+    : stores.filter(store => store.category === destCategory);
 
   const handleNavigation = async (e) => {
     e.preventDefault();
@@ -105,38 +111,27 @@ function App() {
             route={route} 
           />
 
-          {/* CATEGORY FILTER PILLS */}
-          <div style={{ marginBottom: "20px" }}>
-            <span style={{ fontSize: "11px", fontWeight: "700", color: "#64748b", letterSpacing: "0.5px", display: "block", marginBottom: "8px" }}>
-              FILTER BY CATEGORY
-            </span>
-            <div style={{ display: "flex", gap: "8px", overflowX: "auto", pb: "4px" }}>
-              {["All", "Apparel", "Food", "Groceries"].map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  style={{
-                    padding: "6px 14px",
-                    borderRadius: "12px",
-                    border: "none",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    background: selectedCategory === cat ? "#6366f1" : "#f1f5f9",
-                    color: selectedCategory === cat ? "#ffffff" : "#475569",
-                    transition: "all 0.2s"
-                  }}
-                >
-                  {cat === "All" && "✨ "}
-                  {cat === "Apparel" && "👟 "}
-                  {cat === "Food" && "🍔 "}
-                  {cat === "Groceries" && "🛒 "}
-                  {cat}
-                </button>
-              ))}
-            </div>
+          {/* START CATEGORY PILLS */}
+          <div style={{ display: "flex", gap: "6px", marginBottom: "8px", overflowX: "auto" }}>
+            {["All", "Apparel", "Food", "Groceries"].map((cat) => (
+              <button
+                key={`start-${cat}`}
+                type="button"
+                onClick={() => setStartCategory(cat)}
+                style={{
+                  padding: "4px 10px",
+                  borderRadius: "8px",
+                  border: "none",
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  background: startCategory === cat ? "#6366f1" : "#e2e8f0",
+                  color: startCategory === cat ? "#ffffff" : "#475569"
+                }}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
 
           <form onSubmit={handleNavigation}>
@@ -151,13 +146,35 @@ function App() {
                 style={{ width: "100%", border: "none", background: "transparent", fontSize: "15px", fontWeight: "600", color: colors.textDark, outline: "none" }}
               >
                 <option value="">Select current store...</option>
-                {/* Change stores.map to filteredStores.map in BOTH select boxes */}
-                {filteredStores.map(item => (
+                {filteredStartStores.map(item => (
                   <option key={item.name} value={item.name}>
                     {formatName(item.name)} ({item.floor})
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* DESTINATION CATEGORY PILLS */}
+            <div style={{ display: "flex", gap: "6px", marginBottom: "8px", overflowX: "auto" }}>
+              {["All", "Apparel", "Food", "Groceries"].map((cat) => (
+                <button
+                  key={`dest-${cat}`}
+                  type="button"
+                  onClick={() => setDestCategory(cat)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "8px",
+                    border: "none",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    background: destCategory === cat ? "#6366f1" : "#e2e8f0",
+                    color: destCategory === cat ? "#ffffff" : "#475569"
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
 
             {/* Destination Dropdown */}
@@ -171,7 +188,7 @@ function App() {
                 style={{ width: "100%", border: "none", background: "transparent", fontSize: "15px", fontWeight: "600", color: colors.textDark, outline: "none" }}
               >
                 <option value="">Select target store...</option>
-                {filteredStores.map(item => (
+                {filteredDestStores.map(item => (
                   <option key={item.name} value={item.name}>
                     {formatName(item.name)} ({item.floor})
                   </option>

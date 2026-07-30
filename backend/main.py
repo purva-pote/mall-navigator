@@ -135,8 +135,8 @@ def get_route(start: str, destination: str):
         human_directions.append(mall_graph[curr_node][next_node]['instruction'])
         
     # Detect if path requires a floor transition
-    start_floor = store_floors[start]
-    dest_floor = store_floors[destination]
+    start_floor = store_registry[start]["floor"]
+    dest_floor = store_registry[destination]["floor"]
     requires_floor_change = start_floor != dest_floor
     
     return {
