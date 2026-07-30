@@ -95,12 +95,14 @@ function App() {
         display: "flex", 
         flexDirection: "column", 
         boxShadow: "0 20px 25px -5px rgba(0,0,0,0.05)",
-        padding: "16px 16px 0 16px" }}>
+        padding: "16px 16px 32px 16px",
+        overflowY: "auto",
+        margin: "5px 10px"}}>
         
         {/* Header */}
         {/* Increased bottom margin from 12px to 20px */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+        <div style={{ marginBottom: "15px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
             <h1 style={{ fontSize: "26px", fontWeight: "800", color: colors.textDark, margin: 0, letterSpacing: "-0.5px" }}>
               Mall Wayfinder
             </h1>
@@ -241,7 +243,7 @@ function App() {
 
         {/* Results Card */}
         {directions.length > 0 && (
-          <div style={{ background: colors.bottomSheetBg, borderRadius: "28px 28px 0 0", padding: "28px 24px", color: "#ffffff" }}>
+          <div style={{ background: colors.bottomSheetBg, borderRadius: "28px 28px 28px 28px", padding: "28px 24px", color: "#ffffff" }}>
             
             {/* Floor Transition Alert Banner */}
             {tripMetadata?.floorChange && (

@@ -42,7 +42,7 @@ function MallMap({ start, destination, route }) {
   };
 
   return (
-    <div style={{ background: "#0f172a", borderRadius: "20px", padding: "20px", marginBottom: "20px" }}>
+    <div style={{ background: "#0f172a", borderRadius: "20px", padding: "20px", marginBottom: "25px" }}>
       
       {/* Header & Floor Switcher Tabs */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
